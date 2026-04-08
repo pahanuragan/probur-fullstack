@@ -37,13 +37,13 @@ server/   # Express + Prisma backend
 - POST /api/orders
 ## Local Setup
 ### Frontend
-`ash
+bash
 cd tool-rental/client
 npm install
 npm run dev
 `
 ### Backend
-`ash
+bash
 cd tool-rental/server
 npm install
 npm start
