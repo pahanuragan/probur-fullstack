@@ -483,7 +483,31 @@ function App() {
     if (currentUser) {
       loadCart()
     }
-  }, [currentUser])
+  }, [currentUser, path])
+
+  useEffect(() => {
+    if (!currentUser) {
+      return
+    }
+
+    const handleFocus = () => {
+      loadCart()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadCart()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [currentUser, loadCart])
 
   const cartTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.price, 0),
