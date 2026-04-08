@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.*
+coverage/
+.vscode/
+.idea/
+tool-rental/server/node_modules/
+tool-rental/client/node_modules/
+tool-rental/client/dist/
+tool-rental/server/.env
+tool-rental/server/prisma/dev.db

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вход — ProBur</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<section class="auth-page">
+  <div class="auth-card">
+    <a href="index.html" class="auth-logo">
+      <img src="icons/logo-probur.svg" alt="ProBur" />
+    </a>
+
+    <h1>Вход</h1>
+    <p class="auth-subtitle">Войдите в аккаунт, чтобы оформить заказ</p>
+
+    <form id="loginForm" class="auth-form">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <input type="password" id="loginPassword" placeholder="Пароль" required />
+
+      <button type="submit" class="btn btn-primary auth-submit">
+        Войти
+      </button>
+    </form>
+
+    <div id="loginMessage" class="auth-message hidden"></div>
+
+    <p class="auth-footer">
+      Нет аккаунта?
+      <a href="auth.html">Зарегистрироваться</a>
+    </p>
+  </div>
+</section>
+
+<script src="js/login.js"></script>
+</body>
+</html>

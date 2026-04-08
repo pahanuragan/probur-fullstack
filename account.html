@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Личный кабинет — ProBur</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <img src="icons/logo-probur.svg" alt="ProBur" />
+    </a>
+
+    <nav class="nav">
+      <a href="catalog.html">Каталог</a>
+      <a href="delivery.html">Доставка</a>
+      <a href="about.html">О сервисе</a>
+      <a href="contacts.html">Контакты</a>
+    </nav>
+
+    <div class="header-actions" id="headerActions"></div>
+  </div>
+</header>
+
+<section class="page bg-about">
+  <div class="page-overlay">
+    <div class="container">
+      <h1>Личный кабинет</h1>
+      <p class="order-subtitle">Ваш профиль и история заказов</p>
+
+      <div class="account-layout">
+        <div class="account-box">
+          <h2>Профиль</h2>
+          <div class="account-info" id="accountInfo"></div>
+        </div>
+
+        <div class="account-box">
+          <h2>Мои заказы</h2>
+          <div id="ordersList" class="orders-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="js/header.js"></script>
+<script src="js/account.js"></script>
+</body>
+</html>

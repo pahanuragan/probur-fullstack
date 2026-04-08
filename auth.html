@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Регистрация — ProBur</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<section class="auth-page">
+  <div class="auth-card">
+    <a href="index.html" class="auth-logo">
+      <img src="icons/logo-probur.svg" alt="ProBur" />
+    </a>
+
+    <h1>Регистрация</h1>
+    <p class="auth-subtitle">Создайте аккаунт для аренды инструмента</p>
+
+    <form id="registerForm" class="auth-form">
+      <input type="text" id="registerName" placeholder="Имя" required />
+      <input type="email" id="registerEmail" placeholder="Email" required />
+      <input type="tel" id="registerPhone" placeholder="Телефон" required />
+      <input type="password" id="registerPassword" placeholder="Пароль" required />
+      <input type="password" id="registerConfirmPassword" placeholder="Повторите пароль" required />
+
+      <button type="submit" class="btn btn-primary auth-submit">
+        Зарегистрироваться
+      </button>
+    </form>
+
+    <div id="registerMessage" class="auth-message hidden"></div>
+
+    <p class="auth-footer">
+      Уже есть аккаунт?
+      <a href="login.html">Войти</a>
+    </p>
+  </div>
+</section>
+
+<script src="js/auth.js"></script>
+</body>
+</html>

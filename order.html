@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Оформление заказа — ProBur</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <img src="icons/logo-probur.svg" alt="ProBur" />
+    </a>
+
+    <nav class="nav">
+      <a href="catalog.html">Каталог</a>
+      <a href="delivery.html">Доставка</a>
+      <a href="about.html">О сервисе</a>
+      <a href="contacts.html">Контакты</a>
+    </nav>
+
+    <div class="header-actions" id="headerActions"></div>
+  </div>
+</header>
+
+<section class="page bg-about">
+  <div class="page-overlay">
+    <div class="container">
+      <h1>Оформление заказа</h1>
+      <p class="order-subtitle">Проверьте выбранные товары и оставьте контакты</p>
+
+      <div class="order-layout">
+        <div class="order-cart-box">
+          <h2>Ваш заказ</h2>
+          <div id="cartItems" class="cart-items"></div>
+
+          <div class="cart-summary">
+            <div class="summary-row">
+              <span>Итого за сутки:</span>
+              <strong id="cartTotal">0 ₽</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-form-box">
+          <h2>Контактные данные</h2>
+
+          <form id="orderForm" class="order-form">
+            <input type="text" id="clientName" placeholder="Ваше имя" required />
+            <input type="tel" id="clientPhone" placeholder="Телефон" required />
+            <input type="text" id="clientAddress" placeholder="Адрес доставки" required />
+            <input type="date" id="rentDate" required />
+            <textarea id="clientComment" rows="5" placeholder="Комментарий к заказу"></textarea>
+
+            <button type="submit" class="btn btn-primary order-submit-btn">
+              Подтвердить заказ
+            </button>
+          </form>
+
+          <div id="orderSuccess" class="order-success hidden">
+            Спасибо! Ваш заказ принят. Мы свяжемся с вами в ближайшее время.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="js/header.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
