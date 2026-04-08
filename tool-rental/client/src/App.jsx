@@ -325,6 +325,10 @@ const pageMeta = {
   [routes.account]: { title: 'Личный кабинет - ProBur' },
 }
 
+const API_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
+  'https://probur-api.onrender.com'
+
 function readStorage(key, fallback) {
   try {
     const value = window.localStorage.getItem(key)
@@ -340,6 +344,24 @@ function writeStorage(key, value) {
 
 function formatPrice(value) {
   return `${value.toLocaleString('ru-RU')} ₽`
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers ?? {}),
+    },
+    ...options,
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Request failed')
+  }
+
+  return data
 }
 
 function navigate(path) {
@@ -362,7 +384,6 @@ function useRoute() {
 function App() {
   const path = useRoute()
   const [cart, setCart] = useState(() => readStorage('probur-cart', []))
-  const [users, setUsers] = useState(() => readStorage('probur-users', []))
   const [currentUser, setCurrentUser] = useState(() =>
     readStorage('probur-current-user', null),
   )
@@ -377,16 +398,13 @@ function App() {
   }, [cart])
 
   useEffect(() => {
-    writeStorage('probur-users', users)
-  }, [users])
-
-  useEffect(() => {
     if (currentUser) {
       writeStorage('probur-current-user', currentUser)
       return
     }
 
     window.localStorage.removeItem('probur-current-user')
+    window.localStorage.removeItem('probur-auth-token')
   }, [currentUser])
 
   useEffect(() => {
@@ -405,41 +423,42 @@ function App() {
     removeFromCart(index) {
       setCart((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
     },
-    register(payload) {
-      const normalizedEmail = payload.email.trim().toLowerCase()
-      const exists = users.some((user) => user.email === normalizedEmail)
+    async register(payload) {
+      try {
+        const data = await apiRequest('/api/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: payload.name.trim(),
+            email: payload.email.trim().toLowerCase(),
+            password: payload.password,
+          }),
+        })
 
-      if (exists) {
-        return { ok: false, message: 'Пользователь с таким email уже существует.' }
+        window.localStorage.setItem('probur-auth-token', data.token)
+        setCurrentUser(data.user)
+        navigate(routes.account)
+        return { ok: true }
+      } catch (error) {
+        return { ok: false, message: error.message }
       }
-
-      const newUser = {
-        id: Date.now(),
-        name: payload.name.trim(),
-        email: normalizedEmail,
-        phone: payload.phone.trim(),
-        password: payload.password,
-      }
-
-      setUsers((prev) => [...prev, newUser])
-      setCurrentUser(newUser)
-      navigate(routes.account)
-      return { ok: true }
     },
-    login(payload) {
-      const normalizedEmail = payload.email.trim().toLowerCase()
-      const foundUser = users.find(
-        (user) =>
-          user.email === normalizedEmail && user.password === payload.password,
-      )
+    async login(payload) {
+      try {
+        const data = await apiRequest('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: payload.email.trim().toLowerCase(),
+            password: payload.password,
+          }),
+        })
 
-      if (!foundUser) {
-        return { ok: false, message: 'Неверный email или пароль.' }
+        window.localStorage.setItem('probur-auth-token', data.token)
+        setCurrentUser(data.user)
+        navigate(routes.account)
+        return { ok: true }
+      } catch (error) {
+        return { ok: false, message: error.message }
       }
-
-      setCurrentUser(foundUser)
-      navigate(routes.account)
-      return { ok: true }
     },
     logout() {
       setCurrentUser(null)
@@ -883,6 +902,7 @@ function OrderPage({ cart, cartTotal, currentUser, actions }) {
 function LoginPage({ actions }) {
   const [form, setForm] = useState({ email: '', password: '' })
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   return (
     <AuthLayout
@@ -894,9 +914,12 @@ function LoginPage({ actions }) {
     >
       <form
         className="auth-form"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
-          const result = actions.login(form)
+          setMessage('')
+          setIsSubmitting(true)
+          const result = await actions.login(form)
+          setIsSubmitting(false)
           if (!result.ok) {
             setMessage(result.message)
           }
@@ -916,8 +939,8 @@ function LoginPage({ actions }) {
           placeholder="Пароль"
           required
         />
-        <button type="submit" className="btn btn-primary auth-submit">
-          Войти
+        <button type="submit" className="btn btn-primary auth-submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Входим...' : 'Войти'}
         </button>
       </form>
       {message ? <div className="auth-message error">{message}</div> : null}
@@ -934,6 +957,7 @@ function RegisterPage({ actions }) {
     confirmPassword: '',
   })
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   return (
     <AuthLayout
@@ -945,15 +969,18 @@ function RegisterPage({ actions }) {
     >
       <form
         className="auth-form"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
+          setMessage('')
 
           if (form.password !== form.confirmPassword) {
             setMessage('Пароли не совпадают.')
             return
           }
 
-          const result = actions.register(form)
+          setIsSubmitting(true)
+          const result = await actions.register(form)
+          setIsSubmitting(false)
           if (!result.ok) {
             setMessage(result.message)
           }
@@ -994,8 +1021,8 @@ function RegisterPage({ actions }) {
           placeholder="Повторите пароль"
           required
         />
-        <button type="submit" className="btn btn-primary auth-submit">
-          Зарегистрироваться
+        <button type="submit" className="btn btn-primary auth-submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Создаем аккаунт...' : 'Зарегистрироваться'}
         </button>
       </form>
       {message ? <div className="auth-message error">{message}</div> : null}
@@ -1060,7 +1087,7 @@ function AccountPage({ currentUser, orders }) {
                 </div>
                 <div className="account-row">
                   <span>Телефон:</span>
-                  <strong>{currentUser.phone}</strong>
+                  <strong>{currentUser.phone || 'Не указан'}</strong>
                 </div>
               </div>
             </div>
