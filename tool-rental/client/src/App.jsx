@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 import './App.css'
 
 const routes = {
@@ -414,21 +414,21 @@ function App() {
     window.localStorage.removeItem('probur-auth-token')
   }, [currentUser])
 
-  useEffect(() => {
-    async function loadOrders() {
-      if (!currentUser || !getAuthToken()) {
-        setOrders([])
-        return
-      }
-
-      try {
-        const data = await apiRequest('/api/orders/me')
-        setOrders(data.orders)
-      } catch {
-        setOrders([])
-      }
+  const loadOrders = useEffectEvent(async () => {
+    if (!currentUser || !getAuthToken()) {
+      setOrders([])
+      return
     }
 
+    try {
+      const data = await apiRequest('/api/orders/me')
+      setOrders(data.orders)
+    } catch {
+      setOrders([])
+    }
+  })
+
+  useEffect(() => {
     loadOrders()
   }, [currentUser])
 
@@ -517,7 +517,7 @@ function App() {
     },
   }
 
-  const pageProps = { currentUser, cart, cartTotal, orders, actions }
+  const pageProps = { currentUser, cart, cartTotal, orders, actions, loadOrders }
 
   return (
     <div className="app-shell">
@@ -1079,12 +1079,18 @@ function AuthLayout({ title, subtitle, footerText, footerAction, onFooterClick, 
   )
 }
 
-function AccountPage({ currentUser, orders }) {
+function AccountPage({ currentUser, orders, loadOrders }) {
   useEffect(() => {
     if (!currentUser) {
       navigate(routes.login)
     }
   }, [currentUser])
+
+  useEffect(() => {
+    if (currentUser) {
+      loadOrders()
+    }
+  }, [currentUser, loadOrders])
 
   if (!currentUser) {
     return null
