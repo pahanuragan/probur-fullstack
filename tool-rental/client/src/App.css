@@ -545,6 +545,37 @@
 
 .order-history-top {
   margin-bottom: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.order-status-new {
+  background: rgba(255, 193, 7, 0.18);
+  color: #ffd86a;
+}
+
+.order-status-confirmed {
+  background: rgba(90, 190, 255, 0.18);
+  color: #99dbff;
+}
+
+.order-status-completed {
+  background: rgba(57, 194, 112, 0.18);
+  color: #9bffc3;
+}
+
+.order-status-cancelled {
+  background: rgba(255, 107, 107, 0.18);
+  color: #ffc3c3;
 }
 
 .order-history-body ul {

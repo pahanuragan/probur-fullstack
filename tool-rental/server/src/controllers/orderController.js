@@ -5,6 +5,7 @@ function serializeOrder(order) {
     id: order.id,
     userEmail: order.user.email,
     userName: order.user.name,
+    status: order.status,
     phone: order.phone,
     address: order.address,
     rentDate: order.rentDate,

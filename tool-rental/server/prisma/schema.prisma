@@ -12,6 +12,13 @@ enum Role {
   ADMIN
 }
 
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -40,6 +47,7 @@ model Order {
   id         Int         @id @default(autoincrement())
   userId     Int
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     OrderStatus @default(NEW)
   phone      String
   address    String
   rentDate   String

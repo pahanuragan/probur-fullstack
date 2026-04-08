@@ -346,6 +346,19 @@ function formatPrice(value) {
   return `${value.toLocaleString('ru-RU')} ₽`
 }
 
+function getOrderStatusLabel(status) {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'Подтвержден'
+    case 'COMPLETED':
+      return 'Завершен'
+    case 'CANCELLED':
+      return 'Отменен'
+    default:
+      return 'Новый'
+  }
+}
+
 function getAuthToken() {
   return window.localStorage.getItem('probur-auth-token')
 }
@@ -1358,6 +1371,9 @@ function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, au
                       <div className="order-history-top">
                         <strong>Заказ №{order.id}</strong>
                         <span>{order.dateCreated}</span>
+                        <span className={`order-status-badge order-status-${String(order.status || 'NEW').toLowerCase()}`}>
+                          {getOrderStatusLabel(order.status)}
+                        </span>
                       </div>
                       <div className="order-history-body">
                         <p><strong>Дата аренды:</strong> {order.rentDate}</p>
