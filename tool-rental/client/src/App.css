@@ -561,17 +561,18 @@
 @media (max-width: 860px) {
   .header {
     position: sticky;
-    padding: 18px 0 14px;
+    padding: 10px 0 8px;
     background: rgba(7, 10, 15, 0.96);
   }
 
   .hero-inner,
   .page-overlay {
-    padding-top: 140px;
+    padding-top: 92px;
   }
 
   .header-inner {
     align-items: flex-start;
+    gap: 12px;
   }
 
   .nav {
@@ -587,12 +588,29 @@
   .nav-link {
     flex: 1 1 calc(50% - 5px);
     min-width: 0;
-    padding: 10px 12px;
-    border-radius: 16px;
+    padding: 8px 10px;
+    border-radius: 14px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
-    font-size: 16px;
+    font-size: 14px;
     text-align: center;
+  }
+
+  .logo img {
+    width: 140px;
+  }
+
+  .header-actions {
+    gap: 10px;
+  }
+
+  .phone {
+    font-size: 16px;
+  }
+
+  .header-actions .btn {
+    padding: 10px 14px;
+    font-size: 15px;
   }
 
   .catalog-panel,
@@ -609,7 +627,7 @@
   }
 
   .header {
-    padding-top: 16px;
+    padding-top: 8px;
   }
 
   .header-actions {
@@ -632,7 +650,7 @@
 
   .hero-inner,
   .page-overlay {
-    padding-top: 110px;
+    padding-top: 84px;
   }
 
   .product-bottom,
