@@ -15,6 +15,7 @@ function createAuthResponse(user) {
       id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role,
     },
   };
@@ -25,13 +26,14 @@ function serializeUser(user) {
     id: user.id,
     name: user.name,
     email: user.email,
+    phone: user.phone,
     role: user.role,
   };
 }
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -47,6 +49,7 @@ exports.register = async (req, res) => {
       data: {
         name,
         email,
+        phone: phone || null,
         password: hashedPassword,
       },
     });

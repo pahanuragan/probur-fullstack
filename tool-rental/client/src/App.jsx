@@ -396,6 +396,7 @@ function App() {
   )
   const [orders, setOrders] = useState([])
   const [authChecked, setAuthChecked] = useState(false)
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
     document.title = pageMeta[path]?.title ?? 'ProBur'
@@ -418,10 +419,12 @@ function App() {
       try {
         const data = await apiRequest('/api/auth/me')
         setCurrentUser(data.user)
+        setProfile(data.user)
       } catch {
         window.localStorage.removeItem('probur-current-user')
         window.localStorage.removeItem('probur-auth-token')
         setCurrentUser(null)
+        setProfile(null)
       } finally {
         setAuthChecked(true)
       }
@@ -477,12 +480,14 @@ function App() {
           body: JSON.stringify({
             name: payload.name.trim(),
             email: payload.email.trim().toLowerCase(),
+            phone: payload.phone.trim(),
             password: payload.password,
           }),
         })
 
         window.localStorage.setItem('probur-auth-token', data.token)
         setCurrentUser(data.user)
+        setProfile(data.user)
         navigate(routes.account)
         return { ok: true }
       } catch (error) {
@@ -501,6 +506,7 @@ function App() {
 
         window.localStorage.setItem('probur-auth-token', data.token)
         setCurrentUser(data.user)
+        setProfile(data.user)
         navigate(routes.account)
         return { ok: true }
       } catch (error) {
@@ -509,6 +515,7 @@ function App() {
     },
     logout() {
       setCurrentUser(null)
+      setProfile(null)
       navigate(routes.home)
     },
     async submitOrder(payload) {
@@ -543,13 +550,29 @@ function App() {
     },
   }
 
+  const loadProfile = useEffectEvent(async () => {
+    if (!currentUser || !getAuthToken()) {
+      setProfile(null)
+      return
+    }
+
+    try {
+      const data = await apiRequest('/api/profile')
+      setProfile(data.profile)
+    } catch {
+      setProfile(null)
+    }
+  })
+
   const pageProps = {
     currentUser,
+    profile,
     cart,
     cartTotal,
     orders,
     actions,
     loadOrders,
+    loadProfile,
     authChecked,
   }
 
@@ -1113,7 +1136,7 @@ function AuthLayout({ title, subtitle, footerText, footerAction, onFooterClick, 
   )
 }
 
-function AccountPage({ currentUser, orders, loadOrders, authChecked }) {
+function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, authChecked }) {
   useEffect(() => {
     if (authChecked && !currentUser) {
       navigate(routes.login)
@@ -1123,14 +1146,16 @@ function AccountPage({ currentUser, orders, loadOrders, authChecked }) {
   useEffect(() => {
     if (currentUser) {
       loadOrders()
+      loadProfile()
     }
-  }, [currentUser, loadOrders])
+  }, [currentUser, loadOrders, loadProfile])
 
   if (!authChecked || !currentUser) {
     return null
   }
 
   const userOrders = orders
+  const profileData = profile || currentUser
 
   return (
     <section className="page bg-about">
@@ -1144,15 +1169,15 @@ function AccountPage({ currentUser, orders, loadOrders, authChecked }) {
               <div className="account-info">
                 <div className="account-row">
                   <span>Имя:</span>
-                  <strong>{currentUser.name}</strong>
+                  <strong>{profileData.name}</strong>
                 </div>
                 <div className="account-row">
                   <span>Email:</span>
-                  <strong>{currentUser.email}</strong>
+                  <strong>{profileData.email}</strong>
                 </div>
                 <div className="account-row">
                   <span>Телефон:</span>
-                  <strong>{currentUser.phone || 'Не указан'}</strong>
+                  <strong>{profileData.phone || 'Не указан'}</strong>
                 </div>
               </div>
             </div>
