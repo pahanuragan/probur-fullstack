@@ -54,6 +54,10 @@ exports.createOrder = async (req, res) => {
       },
     });
 
+    await prisma.cartItem.deleteMany({
+      where: { userId: req.user.id },
+    });
+
     res.status(201).json({ order: serializeOrder(order) });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

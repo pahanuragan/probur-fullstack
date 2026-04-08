@@ -403,8 +403,13 @@ function App() {
   }, [path])
 
   useEffect(() => {
-    writeStorage('probur-cart', cart)
-  }, [cart])
+    if (!currentUser) {
+      writeStorage('probur-cart', cart)
+      return
+    }
+
+    window.localStorage.removeItem('probur-cart')
+  }, [cart, currentUser])
 
   useEffect(() => {
     async function restoreSession() {
@@ -432,6 +437,19 @@ function App() {
 
     restoreSession()
   }, [])
+
+  const loadCart = useEffectEvent(async () => {
+    if (!currentUser || !getAuthToken()) {
+      return
+    }
+
+    try {
+      const data = await apiRequest('/api/cart')
+      setCart(data.cart)
+    } catch {
+      setCart([])
+    }
+  })
 
   useEffect(() => {
     if (currentUser) {
@@ -461,6 +479,12 @@ function App() {
     loadOrders()
   }, [currentUser])
 
+  useEffect(() => {
+    if (currentUser) {
+      loadCart()
+    }
+  }, [currentUser])
+
   const cartTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.price, 0),
     [cart],
@@ -468,10 +492,34 @@ function App() {
 
   const actions = {
     addToCart(product) {
-      setCart((prev) => [...prev, product])
+      if (!currentUser) {
+        setCart((prev) => [...prev, product])
+        return
+      }
+
+      apiRequest('/api/cart/items', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: product.title,
+          category: product.category,
+          price: product.price,
+          image: product.image,
+        }),
+      })
+        .then((data) => setCart(data.cart))
+        .catch(() => {})
     },
-    removeFromCart(index) {
-      setCart((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+    removeFromCart(item, index) {
+      if (!currentUser) {
+        setCart((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+        return
+      }
+
+      apiRequest(`/api/cart/items/${item.id}`, {
+        method: 'DELETE',
+      })
+        .then((data) => setCart(data.cart))
+        .catch(() => {})
     },
     async register(payload) {
       try {
@@ -488,6 +536,7 @@ function App() {
         window.localStorage.setItem('probur-auth-token', data.token)
         setCurrentUser(data.user)
         setProfile(data.user)
+        setCart([])
         navigate(routes.account)
         return { ok: true }
       } catch (error) {
@@ -507,6 +556,7 @@ function App() {
         window.localStorage.setItem('probur-auth-token', data.token)
         setCurrentUser(data.user)
         setProfile(data.user)
+        setCart([])
         navigate(routes.account)
         return { ok: true }
       } catch (error) {
@@ -516,6 +566,7 @@ function App() {
     logout() {
       setCurrentUser(null)
       setProfile(null)
+      setCart([])
       navigate(routes.home)
     },
     async updateProfile(payload) {
@@ -918,7 +969,11 @@ function OrderPage({ cart, cartTotal, currentUser, actions }) {
                       </div>
                       <div className="cart-item-right">
                         <strong>{formatPrice(item.price)}</strong>
-                        <button type="button" className="remove-btn" onClick={() => actions.removeFromCart(index)}>
+                        <button
+                          type="button"
+                          className="remove-btn"
+                          onClick={() => actions.removeFromCart(item, index)}
+                        >
                           Удалить
                         </button>
                       </div>
