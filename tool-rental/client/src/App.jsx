@@ -1191,7 +1191,7 @@ function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, au
       name: profileData.name || '',
       phone: profileData.phone || '',
     })
-  }, [profileData])
+  }, [profileData?.id])
 
   if (!authChecked || !currentUser) {
     return null
@@ -1234,6 +1234,12 @@ function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, au
                   setProfileMessage(
                     result.ok ? 'Профиль обновлен.' : result.message,
                   )
+                  if (result.ok && result.profile) {
+                    setProfileForm({
+                      name: result.profile.name || '',
+                      phone: result.profile.phone || '',
+                    })
+                  }
                 }}
               >
                 <input
