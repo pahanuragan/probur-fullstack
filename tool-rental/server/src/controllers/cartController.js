@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const { badRequest } = require('../utils/validation');
 
 function serializeCartItem(item) {
   return {
@@ -26,18 +27,22 @@ exports.getMyCart = async (req, res) => {
 exports.addCartItem = async (req, res) => {
   try {
     const { title, category, price, image } = req.body;
+    const normalizedTitle = String(title || '').trim();
+    const normalizedCategory = String(category || '').trim();
+    const normalizedImage = String(image || '').trim();
+    const normalizedPrice = Number(price);
 
-    if (!title || !category || !price || !image) {
-      return res.status(400).json({ message: 'Invalid cart item payload' });
+    if (!normalizedTitle || !normalizedCategory || !normalizedImage || normalizedPrice <= 0) {
+      return badRequest(res, 'Invalid cart item payload');
     }
 
     await prisma.cartItem.create({
       data: {
         userId: req.user.id,
-        title,
-        category,
-        price: Number(price),
-        image,
+        title: normalizedTitle,
+        category: normalizedCategory,
+        price: normalizedPrice,
+        image: normalizedImage,
       },
     });
 
@@ -55,6 +60,10 @@ exports.addCartItem = async (req, res) => {
 exports.removeCartItem = async (req, res) => {
   try {
     const cartItemId = Number(req.params.id);
+
+    if (!Number.isInteger(cartItemId) || cartItemId <= 0) {
+      return badRequest(res, 'Invalid cart item id');
+    }
 
     const existingItem = await prisma.cartItem.findFirst({
       where: {

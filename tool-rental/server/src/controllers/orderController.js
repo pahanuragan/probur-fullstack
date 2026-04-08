@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const { badRequest, isPhone } = require('../utils/validation');
 
 function serializeOrder(order) {
   return {
@@ -25,9 +26,37 @@ function serializeOrder(order) {
 exports.createOrder = async (req, res) => {
   try {
     const { phone, address, rentDate, comment, items } = req.body;
+    const normalizedPhone = String(phone || '').trim();
+    const normalizedAddress = String(address || '').trim();
+    const normalizedRentDate = String(rentDate || '').trim();
 
-    if (!phone || !address || !rentDate || !Array.isArray(items) || !items.length) {
-      return res.status(400).json({ message: 'Invalid order payload' });
+    if (!isPhone(normalizedPhone)) {
+      return badRequest(res, 'Please provide a valid phone number');
+    }
+
+    if (!normalizedAddress || normalizedAddress.length < 5) {
+      return badRequest(res, 'Please provide a valid delivery address');
+    }
+
+    if (!normalizedRentDate) {
+      return badRequest(res, 'Please choose a rent date');
+    }
+
+    if (!Array.isArray(items) || !items.length) {
+      return badRequest(res, 'Cart is empty');
+    }
+
+    const hasInvalidItem = items.some(
+      (item) =>
+        !item ||
+        !item.title ||
+        !item.category ||
+        !item.image ||
+        Number(item.price) <= 0,
+    );
+
+    if (hasInvalidItem) {
+      return badRequest(res, 'Order contains invalid items');
     }
 
     const total = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
@@ -35,10 +64,10 @@ exports.createOrder = async (req, res) => {
     const order = await prisma.order.create({
       data: {
         userId: req.user.id,
-        phone,
-        address,
-        rentDate,
-        comment: comment || '',
+        phone: normalizedPhone,
+        address: normalizedAddress,
+        rentDate: normalizedRentDate,
+        comment: String(comment || '').trim(),
         total,
         items: {
           create: items.map((item) => ({

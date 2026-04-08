@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const { badRequest, isPhone } = require('../utils/validation');
 
 function serializeProfile(user) {
   return {
@@ -22,16 +23,22 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
+    const normalizedName = String(name || '').trim();
+    const normalizedPhone = String(phone || '').trim();
 
-    if (!name || !name.trim()) {
-      return res.status(400).json({ message: 'Name is required' });
+    if (!normalizedName || normalizedName.length < 2) {
+      return badRequest(res, 'Name must contain at least 2 characters');
+    }
+
+    if (!isPhone(normalizedPhone)) {
+      return badRequest(res, 'Please provide a valid phone number');
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: {
-        name: name.trim(),
-        phone: phone?.trim() || null,
+        name: normalizedName,
+        phone: normalizedPhone || null,
       },
     });
 
