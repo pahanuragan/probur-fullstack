@@ -9,7 +9,7 @@
   right: 0;
   padding: 24px 0;
   z-index: 10;
-  background: linear-gradient(180deg, rgba(7, 10, 15, 0.78), rgba(7, 10, 15, 0.3));
+  background: transparent;
 }
 
 .container {
@@ -559,6 +559,11 @@
 }
 
 @media (max-width: 860px) {
+  .hero-inner,
+  .page-overlay {
+    padding-top: 260px;
+  }
+
   .header-inner {
     align-items: flex-start;
   }
@@ -623,7 +628,7 @@
 
   .hero-inner,
   .page-overlay {
-    padding-top: 180px;
+    padding-top: 300px;
   }
 
   .product-bottom,
