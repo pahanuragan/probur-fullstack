@@ -395,6 +395,7 @@ function App() {
     readStorage('probur-current-user', null),
   )
   const [orders, setOrders] = useState([])
+  const [authChecked, setAuthChecked] = useState(false)
 
   useEffect(() => {
     document.title = pageMeta[path]?.title ?? 'ProBur'
@@ -403,6 +404,31 @@ function App() {
   useEffect(() => {
     writeStorage('probur-cart', cart)
   }, [cart])
+
+  useEffect(() => {
+    async function restoreSession() {
+      const token = getAuthToken()
+
+      if (!token) {
+        setCurrentUser(null)
+        setAuthChecked(true)
+        return
+      }
+
+      try {
+        const data = await apiRequest('/api/auth/me')
+        setCurrentUser(data.user)
+      } catch {
+        window.localStorage.removeItem('probur-current-user')
+        window.localStorage.removeItem('probur-auth-token')
+        setCurrentUser(null)
+      } finally {
+        setAuthChecked(true)
+      }
+    }
+
+    restoreSession()
+  }, [])
 
   useEffect(() => {
     if (currentUser) {
@@ -517,7 +543,15 @@ function App() {
     },
   }
 
-  const pageProps = { currentUser, cart, cartTotal, orders, actions, loadOrders }
+  const pageProps = {
+    currentUser,
+    cart,
+    cartTotal,
+    orders,
+    actions,
+    loadOrders,
+    authChecked,
+  }
 
   return (
     <div className="app-shell">
@@ -1079,12 +1113,12 @@ function AuthLayout({ title, subtitle, footerText, footerAction, onFooterClick, 
   )
 }
 
-function AccountPage({ currentUser, orders, loadOrders }) {
+function AccountPage({ currentUser, orders, loadOrders, authChecked }) {
   useEffect(() => {
-    if (!currentUser) {
+    if (authChecked && !currentUser) {
       navigate(routes.login)
     }
-  }, [currentUser])
+  }, [authChecked, currentUser])
 
   useEffect(() => {
     if (currentUser) {
@@ -1092,7 +1126,7 @@ function AccountPage({ currentUser, orders, loadOrders }) {
     }
   }, [currentUser, loadOrders])
 
-  if (!currentUser) {
+  if (!authChecked || !currentUser) {
     return null
   }
 

@@ -20,6 +20,15 @@ function createAuthResponse(user) {
   };
 }
 
+function serializeUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+}
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -67,6 +76,14 @@ exports.login = async (req, res) => {
     }
 
     res.json(createAuthResponse(user));
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.me = async (req, res) => {
+  try {
+    res.json({ user: serializeUser(req.user) });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
