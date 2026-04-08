@@ -518,6 +518,32 @@ function App() {
       setProfile(null)
       navigate(routes.home)
     },
+    async updateProfile(payload) {
+      try {
+        const data = await apiRequest('/api/profile', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: payload.name.trim(),
+            phone: payload.phone.trim(),
+          }),
+        })
+
+        setProfile(data.profile)
+        setCurrentUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                name: data.profile.name,
+                phone: data.profile.phone,
+              }
+            : prev,
+        )
+
+        return { ok: true, profile: data.profile }
+      } catch (error) {
+        return { ok: false, message: error.message }
+      }
+    },
     async submitOrder(payload) {
       if (!currentUser) {
         navigate(routes.login)
@@ -1136,7 +1162,13 @@ function AuthLayout({ title, subtitle, footerText, footerAction, onFooterClick, 
   )
 }
 
-function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, authChecked }) {
+function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, authChecked, actions }) {
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '' })
+  const [profileMessage, setProfileMessage] = useState('')
+  const [profileSuccess, setProfileSuccess] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const profileData = profile || currentUser
+
   useEffect(() => {
     if (authChecked && !currentUser) {
       navigate(routes.login)
@@ -1150,12 +1182,22 @@ function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, au
     }
   }, [currentUser, loadOrders, loadProfile])
 
+  useEffect(() => {
+    if (!profileData) {
+      return
+    }
+
+    setProfileForm({
+      name: profileData.name || '',
+      phone: profileData.phone || '',
+    })
+  }, [profileData])
+
   if (!authChecked || !currentUser) {
     return null
   }
 
   const userOrders = orders
-  const profileData = profile || currentUser
 
   return (
     <section className="page bg-about">
@@ -1180,6 +1222,46 @@ function AccountPage({ currentUser, profile, orders, loadOrders, loadProfile, au
                   <strong>{profileData.phone || 'Не указан'}</strong>
                 </div>
               </div>
+              <form
+                className="profile-form"
+                onSubmit={async (event) => {
+                  event.preventDefault()
+                  setProfileMessage('')
+                  setIsSavingProfile(true)
+                  const result = await actions.updateProfile(profileForm)
+                  setIsSavingProfile(false)
+                  setProfileSuccess(result.ok)
+                  setProfileMessage(
+                    result.ok ? 'Профиль обновлен.' : result.message,
+                  )
+                }}
+              >
+                <input
+                  type="text"
+                  value={profileForm.name}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, name: event.target.value })
+                  }
+                  placeholder="Имя"
+                  required
+                />
+                <input
+                  type="tel"
+                  value={profileForm.phone}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, phone: event.target.value })
+                  }
+                  placeholder="Телефон"
+                />
+                <button type="submit" className="btn btn-primary" disabled={isSavingProfile}>
+                  {isSavingProfile ? 'Сохраняем...' : 'Сохранить профиль'}
+                </button>
+              </form>
+              {profileMessage ? (
+                <div className={`auth-message ${profileSuccess ? 'success' : 'error'}`}>
+                  {profileMessage}
+                </div>
+              ) : null}
             </div>
 
             <div className="account-box info-card">
