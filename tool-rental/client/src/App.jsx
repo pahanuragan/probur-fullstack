@@ -346,10 +346,17 @@ function formatPrice(value) {
   return `${value.toLocaleString('ru-RU')} ₽`
 }
 
+function getAuthToken() {
+  return window.localStorage.getItem('probur-auth-token')
+}
+
 async function apiRequest(path, options = {}) {
+  const token = getAuthToken()
+
   const response = await fetch(`${API_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
     ...options,
@@ -387,7 +394,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(() =>
     readStorage('probur-current-user', null),
   )
-  const [orders, setOrders] = useState(() => readStorage('probur-orders', []))
+  const [orders, setOrders] = useState([])
 
   useEffect(() => {
     document.title = pageMeta[path]?.title ?? 'ProBur'
@@ -408,8 +415,22 @@ function App() {
   }, [currentUser])
 
   useEffect(() => {
-    writeStorage('probur-orders', orders)
-  }, [orders])
+    async function loadOrders() {
+      if (!currentUser || !getAuthToken()) {
+        setOrders([])
+        return
+      }
+
+      try {
+        const data = await apiRequest('/api/orders/me')
+        setOrders(data.orders)
+      } catch {
+        setOrders([])
+      }
+    }
+
+    loadOrders()
+  }, [currentUser])
 
   const cartTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.price, 0),
@@ -464,7 +485,7 @@ function App() {
       setCurrentUser(null)
       navigate(routes.home)
     },
-    submitOrder(payload) {
+    async submitOrder(payload) {
       if (!currentUser) {
         navigate(routes.login)
         return { ok: false, message: 'Сначала войдите в аккаунт.' }
@@ -474,22 +495,25 @@ function App() {
         return { ok: false, message: 'Добавьте товары в корзину перед оформлением.' }
       }
 
-      const newOrder = {
-        id: Date.now(),
-        userEmail: currentUser.email,
-        userName: currentUser.name,
-        phone: payload.phone.trim(),
-        address: payload.address.trim(),
-        rentDate: payload.rentDate,
-        comment: payload.comment.trim(),
-        total: cartTotal,
-        dateCreated: new Date().toLocaleDateString('ru-RU'),
-        items: [...cart],
-      }
+      try {
+        const data = await apiRequest('/api/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            phone: payload.phone.trim(),
+            address: payload.address.trim(),
+            rentDate: payload.rentDate,
+            comment: payload.comment.trim(),
+            items: cart,
+          }),
+        })
 
-      setOrders((prev) => [...prev, newOrder])
-      setCart([])
-      return { ok: true }
+        setOrders((prev) => [data.order, ...prev])
+        setCart([])
+        navigate(routes.account)
+        return { ok: true }
+      } catch (error) {
+        return { ok: false, message: error.message }
+      }
     },
   }
 
@@ -771,6 +795,7 @@ function InfoPage({ variant }) {
 function OrderPage({ cart, cartTotal, currentUser, actions }) {
   const [message, setMessage] = useState('')
   const [success, setSuccess] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState({
     name: currentUser?.name ?? '',
     phone: currentUser?.phone ?? '',
@@ -832,9 +857,12 @@ function OrderPage({ cart, cartTotal, currentUser, actions }) {
               <h2>Контактные данные</h2>
               <form
                 className="order-form"
-                onSubmit={(event) => {
+                onSubmit={async (event) => {
                   event.preventDefault()
-                  const result = actions.submitOrder(form)
+                  setMessage('')
+                  setIsSubmitting(true)
+                  const result = await actions.submitOrder(form)
+                  setIsSubmitting(false)
                   setSuccess(result.ok)
                   setMessage(
                     result.ok
@@ -885,7 +913,7 @@ function OrderPage({ cart, cartTotal, currentUser, actions }) {
                   placeholder="Комментарий к заказу"
                 />
                 <button type="submit" className="btn btn-primary order-submit-btn">
-                  Подтвердить заказ
+                  {isSubmitting ? 'Отправляем заказ...' : 'Подтвердить заказ'}
                 </button>
               </form>
               {message ? (
@@ -1063,9 +1091,6 @@ function AccountPage({ currentUser, orders }) {
   }
 
   const userOrders = orders
-    .filter((order) => order.userEmail === currentUser.email)
-    .slice()
-    .reverse()
 
   return (
     <section className="page bg-about">

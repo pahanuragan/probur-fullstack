@@ -18,6 +18,32 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(USER)
+  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  userId     Int
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone      String
+  address    String
+  rentDate   String
+  comment    String?
+  total      Int
+  items      OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  title     String
+  category  String
+  price     Int
+  image     String
+  createdAt DateTime @default(now())
 }
