@@ -559,9 +559,15 @@
 }
 
 @media (max-width: 860px) {
+  .header {
+    position: sticky;
+    padding: 18px 0 14px;
+    background: rgba(7, 10, 15, 0.96);
+  }
+
   .hero-inner,
   .page-overlay {
-    padding-top: 260px;
+    padding-top: 140px;
   }
 
   .header-inner {
@@ -572,23 +578,21 @@
     display: flex;
     order: 3;
     width: 100%;
-    gap: 12px;
-    overflow-x: auto;
+    gap: 10px;
     padding-bottom: 4px;
-    scrollbar-width: none;
-  }
-
-  .nav::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
+    flex-wrap: wrap;
   }
 
   .nav-link {
-    flex: 0 0 auto;
-    padding: 10px 14px;
-    border-radius: 999px;
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
     font-size: 16px;
+    text-align: center;
   }
 
   .catalog-panel,
@@ -628,7 +632,7 @@
 
   .hero-inner,
   .page-overlay {
-    padding-top: 300px;
+    padding-top: 110px;
   }
 
   .product-bottom,
